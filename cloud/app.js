@@ -14,6 +14,18 @@ app.get('/hello', function(req, res) {
   res.render('hello', { message: 'Congrats, you just set up your app!' });
 });
 
+app.get('/requestahelper', function(req, res) {
+  var Message = Parse.Object.extend("Message");
+  var message = new Message();
+  message.save({ text: req.body.text }).then(function(message) {
+    res.send('Success');
+  }, function(error) {
+    res.status(500);
+    res.send('Error');
+  });
+});
+
+
 // // Example reading from the request query string of an HTTP get request.
 // app.get('/test', function(req, res) {
 //   // GET http://example.parseapp.com/test?message=hello
