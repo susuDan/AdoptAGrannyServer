@@ -1,0 +1,14 @@
+{
+    "applications": {
+        "AdoptAGranny": {
+            "applicationId": "lfv0uvEoiM8gxprHYW0vUQeiZmtqG7LGLRkexPcC", 
+            "masterKey": "YTjXwHbFtgTweZRJsOram0CuHmwy8GyxkW0P9uKv"
+        }, 
+        "_default": {
+            "link": "AdoptAGranny"
+        }
+    }, 
+    "global": {
+        "parseVersion": "1.3.4"
+    }
+}
