@@ -15,6 +15,13 @@ app.get('/hello', function(req, res) {
 });
 
 app.post('/requestahelper', function(req, res) {
+	console.log('params');
+	console.log(req.params);
+	console.log('body');
+	console.log(req.body);
+	console.log('sender');
+	console.log(req.body.Sender);
+	
 	  var grannyEmail = "dancheung13@gmail.com"; // TODO: get granny email address
 	  
 	  // TODO: parse from body
@@ -23,6 +30,9 @@ app.post('/requestahelper', function(req, res) {
 	  var taskDurationMin = 30;
 	  var taskStartTimeHour = 12;
 	  var taskStartTimeMin = 30;
+	  var taskMessage="I need to get milk from the store.";
+	  var taskSubject="Help Me";
+	  // 
 	  
 	  var Granny = Parse.Object.extend("Granny");
 	  var query = new Parse.Query(Granny);
@@ -31,10 +41,10 @@ app.post('/requestahelper', function(req, res) {
 	  {
 		 success: function(results) {
 			var granny = results[0];
-			var Test = Parse.Object.extend("Test");
-			var test = new Test();
+			var Task = Parse.Object.extend("Task");
+			var task = new Task();
 
-			test.save( 
+			task.save( 
 			{ 
 				category: taskCategory,
 				durationHour: taskDurationHour,
@@ -43,7 +53,10 @@ app.post('/requestahelper', function(req, res) {
 				grannyid: granny.id,
 				status: "Active",
 				startTimeHour: taskStartTimeHour,
-				startTimeMin: taskStartTimeMin
+				startTimeMin: taskStartTimeMin,
+				message: taskMessage,
+				subject: taskSubject,
+				volunteerid: granny.id
 				// inline more granny information
 			}).then
 			(
