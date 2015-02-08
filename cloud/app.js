@@ -1,6 +1,6 @@
 
 var Mailjet = require('cloud/mailjet.js');
-var mailjet = new Mailjet('0ad8eeffdecad5a851ecca2495db032e', '94cdf2db5cac440d458c94e5e461fed8');
+var mailjet = new Mailjet('d87db8abaa75f5576fb9378dd093d228', 'f45e2863a1d9e549c410dafb5b96309b');
 
 // These two lines are required to initialize Express in Cloud Code.
 var express = require('express');
@@ -65,7 +65,7 @@ app.post('/requestahelper', function(req, res)
 
 	var message=req.body['Text-part'];
 	var subject=req.body.Subject;
-	var startTime = "12:30 PM";
+	var startTime = new Date(req.body.Headers['Date']).getHours() + ":" + new Date(req.body.Headers['Date']).getMinutes() + " PM";
 	var category = "other";
 	console.log(req.body);
 	
@@ -106,17 +106,34 @@ Parse.Cloud.afterSave("Request", function(request) {
 	console.log("on save Request");
 	if(request.object.get("status") == "Accepted")
 	{
+		console.log("Request was accepted, email back the grannie");
 		query = new Parse.Query("Volunteer");
 		query.get(request.object.get("volunteerid"), 
 		{
 			success: function(volunteer) 
 			{
 				console.log("Found volunteer");
-				mailjet.sendContent(volunteer.get("email"), 'dancheung13@gmail.com', 'test', 'text', 'body');
+				
+				queryGranny = new Parse.Query("Granny");
+				queryGranny.get(request.object.get("grannyid"),
+				{
+					success: function(granny)
+					{
+						console.log("Found granny as well");
+						//var bodyHtml = "<div>Here is a photo of " + volunteer.get("FirstName") + " <br><img src='" + volunteer.get("profilePicture").url() + "' /></div>"
+						//console.log(bodyhtml);
+
+						mailjet.sendContent('volunteer.for.grannies@gmail.com', granny.get("email"), volunteer.get("FirstName") + ' will be coming by to help you at 3pm.', 'html', 'body');
+					},
+					error: function(error) 
+					{
+						console.error("Got an error " + error);
+					}		
+				});
 			},
 			error: function(error) 
 			{
-				console.error("Got an error " + error.Code);
+				console.error("Got an error " + error);
 			}
 		});
 	}
