@@ -55,37 +55,37 @@
 		 
 		  var parseFile = new Parse.File(name, file);
 		  parseFile.save().then(function() {
-			  var Granny = Parse.Object.extend("Granny");
-			  var query = new Parse.Query(Granny);
+			  var Volunteer = Parse.Object.extend("Volunteer");
+			  var query = new Parse.Query(Volunteer);
 			  
 			  query.equalTo("email", $("#email").val());
 			  query.first(
 				{
-					success: function(granny) 
+					success: function(volunteer) 
 					{
-						alert('found granny');
-						granny.set("profilePicture", parseFile);
-						granny.save();
+						alert('found volunteer');
+						volunteer.set("profilePicture", parseFile);
+						volunteer.save();
 						
-						var query2 = new Parse.Query(Granny);
+						var query2 = new Parse.Query(Volunteer);
 						query2.equalTo("email", $("#email").val());		
 						
 						query2.first(
 						{
-							success: function(granny2) 
+							success: function(volunteer2) 
 							{
-								var parseFile2 = granny2.get("profilePicture")
+								var parseFile2 = volunteer2.get("profilePicture")
 								alert(parseFile2.url());
 							},
 							error: function(error) 
 							{
-								alert('unable to find granny');
+								alert('unable to find volunteer');
 							}
 						});
 					},
 					error: function(error) 
 					{
-						alert('unable to find granny');
+						alert('unable to find volunteer');
 					}
 				});
 
@@ -98,7 +98,7 @@
   </script>
   <form action='javascript:formOnClick()'>
   <input type="file" id="profilePhotoFileUpload">
-  <input type="text" id="email">
+  <input type="text" id="email">email</input>
   <input type="submit" id="submit">
   </form>
 </body>
