@@ -15,14 +15,63 @@ app.get('/hello', function(req, res) {
 });
 
 app.post('/requestahelper', function(req, res) {
-  var Message = Parse.Object.extend("Message");
-  var message = new Message();
-  message.save({ text: "message" }).then(function(message) {
-    res.send('Success');
-  }, function(error) {
-    res.status(500);
-    res.send('Error');
-  });
+	  var grannyEmail = "dancheung13@gmail.com"; // TODO: get granny email address
+	  
+	  // TODO: parse from body
+	  var taskCategory = "Grocery";
+	  var taskDurationHour = 1;
+	  var taskDurationMin = 30;
+	  var taskStartTimeHour = 12;
+	  var taskStartTimeMin = 30;
+	  
+	  var Granny = Parse.Object.extend("Granny");
+	  var query = new Parse.Query(Granny);
+	  query.equalTo("email", grannyEmail); 
+	  query.find(
+	  {
+		 success: function(results) {
+			var granny = results[0];
+			var Test = Parse.Object.extend("Test");
+			var test = new Test();
+
+			test.save( 
+			{ 
+				category: taskCategory,
+				durationHour: taskDurationHour,
+				durationMin: taskDurationMin,
+				distance: 5.2,
+				grannyid: granny.id,
+				status: "Active",
+				startTimeHour: taskStartTimeHour,
+				startTimeMin: taskStartTimeMin
+				// inline more granny information
+			}).then
+			(
+				function(test) 
+				{
+					res.send('Success');
+				}, 
+				function(error) 
+				{
+					res.status(500);
+					res.send('Error could not save task');
+				}
+			);
+		},
+		error: function(error) 
+		{
+			res.status(500);
+			res.send('Error could not find granny');
+		}
+	});
+  
+  		
+//  message.save({ text: "message" }).then(function(message) {
+//    res.send('Success');
+//  }, function(error) {
+//    res.status(500);
+//    res.send('Error');
+//  });
 //category => subject or body/text through processing
 //user => from mail, lookup user in DB, link them
 //duration => parse from body/text (or default per category)
