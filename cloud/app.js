@@ -15,80 +15,96 @@ app.get('/hello', function(req, res) {
 });
 
 app.post('/requestahelper', function(req, res) {
-	console.log('params');
-	console.log(req.params);
+	
+	
+	var grannyEmail = req.body.Sender; // TODO: get granny email address
+
+	// TODO: parse from body
+	var taskMessage=req.body['Text-part'];
+	var taskSubject=req.body.Subject;
 	console.log('body');
 	console.log(req.body);
-	console.log('sender');
-	console.log(req.body.Sender);
 	
-	  var grannyEmail = "dancheung13@gmail.com"; // TODO: get granny email address
-	  
-	  // TODO: parse from body
-	  var taskCategory = "Grocery";
-	  var taskDurationHour = 1;
-	  var taskDurationMin = 30;
-	  var taskStartTimeHour = 12;
-	  var taskStartTimeMin = 30;
-	  var taskMessage="I need to get milk from the store.";
-	  var taskSubject="Help Me";
-	  // 
-	  
-	  var Granny = Parse.Object.extend("Granny");
-	  var query = new Parse.Query(Granny);
-	  query.equalTo("email", grannyEmail); 
-	  query.find(
-	  {
-		 success: function(results) {
-			var granny = results[0];
-			var Task = Parse.Object.extend("Task");
-			var task = new Task();
+	Parse.Cloud.httpRequest(
+	{
+		url: 'https://api.idolondemand.com/1/api/sync/querytextindex/v1', 
+		params: 
+		{
+			text : taskMessage,
+			apikey: 'a8b4944c-d2c0-4454-982f-6235ed5e5988',
+			indexes: 'task',
+			print: 'all'
+		},
+		success: function(httpResponse) 
+		{
+			console.log(httpResponse);
+			var taskCategory = "other";
+			if(httpResponse.status == 200 && httpResponse.data != null && httpResponse.data.documents != null && httpResponse.data.documents.length > 0)
+			{
+				console.log('found a match');
+				var taskCategory = httpResponse.data.documents[0].title;
+				console.log(taskCategory);
+			}
+			else
+			{
+				console.log('no match found');
+			}
+			
+			var taskDurationHour = 1;
+			var taskDurationMin = 30;
+			var taskStartTimeHour = 12;
+			var taskStartTimeMin = 30;
 
-			task.save( 
-			{ 
-				category: taskCategory,
-				durationHour: taskDurationHour,
-				durationMin: taskDurationMin,
-				distance: 5.2,
-				grannyid: granny.id,
-				status: "Active",
-				startTimeHour: taskStartTimeHour,
-				startTimeMin: taskStartTimeMin,
-				message: taskMessage,
-				subject: taskSubject,
-				volunteerid: granny.id
-				// inline more granny information
-			}).then
-			(
-				function(test) 
-				{
-					res.send('Success');
-				}, 
-				function(error) 
+			var Granny = Parse.Object.extend("Granny");
+			var query = new Parse.Query(Granny);
+			query.equalTo("email", grannyEmail); 
+	  
+			query.find(
+			{
+				 success: function(results) {
+					var granny = results[0];
+					var Task = Parse.Object.extend("Task");
+					var task = new Task();
+
+					task.save( 
+					{ 
+						category: taskCategory,
+						durationHour: taskDurationHour,
+						durationMin: taskDurationMin,
+						distance: 5.2,
+						grannyid: granny.id,
+						status: "Active",
+						startTimeHour: taskStartTimeHour,
+						startTimeMin: taskStartTimeMin,
+						message: taskMessage,
+						subject: taskSubject,
+						volunteerid: granny.id
+						// inline more granny information
+					}).then
+					(
+						function(test) 
+						{
+							res.send('Success');
+						}, 
+						function(error) 
+						{
+							res.status(500);
+							res.send('Error could not save task');
+						}
+					);
+				},
+				error: function(error) 
 				{
 					res.status(500);
-					res.send('Error could not save task');
+					res.send('Error could not find granny');
 				}
-			);
+			});
 		},
-		error: function(error) 
+		error: function(httpResponse) 
 		{
-			res.status(500);
-			res.send('Error could not find granny');
+			console.error('Request failed with response code ' + httpResponse.status);
 		}
 	});
-  
-  		
-//  message.save({ text: "message" }).then(function(message) {
-//    res.send('Success');
-//  }, function(error) {
-//    res.status(500);
-//    res.send('Error');
-//  });
-//category => subject or body/text through processing
-//user => from mail, lookup user in DB, link them
-//duration => parse from body/text (or default per category)
-//   Task ( category, user, time, duration) => SAVE
 });
 
 
