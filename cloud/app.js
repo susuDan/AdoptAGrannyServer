@@ -8,13 +8,62 @@ app.set('views', 'cloud/views');  // Specify the folder to find templates
 app.set('view engine', 'ejs');    // Set the template engine
 app.use(express.bodyParser());    // Middleware for reading request body
 
+function CreateRequest(category, grannyEmail, message, subject, startTime, res)
+{
+	console.log('CreateRequest');
+	
+	var Granny = Parse.Object.extend("Granny");
+	var query = new Parse.Query(Granny);
+	query.equalTo("email", grannyEmail); 
+
+	query.find(
+	{
+		 success: function(results) {
+			var granny = results[0];
+			var Request = Parse.Object.extend("Request");
+			var request = new Request();
+
+			request.save( 
+			{ 
+				requestName: category,
+				distance: "5.2",
+				grannyid: granny.id,
+				grannieName: granny.get("firstname") + ' ' + granny.get("lastname"),
+				img: "empty",
+				status: "Active",
+				startTime: startTime,
+				message: message,
+				subject: subject,
+				volunteerid: granny.id
+			}).then
+			(
+				function(test) 
+				{
+					res.send('Success');
+				}, 
+				function(error) 
+				{
+					res.status(500);
+					res.send('Error could not save task');
+				}
+			);
+		},
+		error: function(error) 
+		{
+			res.status(500);
+			res.send('Error could not find granny');
+		}
+	});
+}
 
 app.post('/requestahelper', function(req, res) 
 {
 	var grannyEmail = req.body.Sender; 
 
-	var taskMessage=req.body['Text-part'];
-	var taskSubject=req.body.Subject;
+	var message=req.body['Text-part'];
+	var subject=req.body.Subject;
+	var startTime = "12:30 PM";
+	var category = "other";
 	console.log(req.body);
 	
 	Parse.Cloud.httpRequest(
@@ -22,7 +71,7 @@ app.post('/requestahelper', function(req, res)
 		url: 'https://api.idolondemand.com/1/api/sync/querytextindex/v1', 
 		params: 
 		{
-			text : taskMessage,
+			text : message,
 			apikey: 'a8b4944c-d2c0-4454-982f-6235ed5e5988',
 			indexes: 'task',
 			print: 'all'
@@ -30,67 +79,22 @@ app.post('/requestahelper', function(req, res)
 		success: function(httpResponse) 
 		{
 			console.log(httpResponse);
-			var taskCategory = "other";
 			if(httpResponse.status == 200 && httpResponse.data != null && httpResponse.data.documents != null && httpResponse.data.documents.length > 0)
 			{
-				console.log('found a match');
-				var taskCategory = httpResponse.data.documents[0].title;
-				console.log(taskCategory);
+				var category = httpResponse.data.documents[0].title;
+				console.log('found a match: ' + category);
 			}
 			else
 			{
 				console.log('no match found');
 			}
 			
-			var taskStartTime = "12:30 PM";
-
-			var Granny = Parse.Object.extend("Granny");
-			var query = new Parse.Query(Granny);
-			query.equalTo("email", grannyEmail); 
-	  
-			query.find(
-			{
-				 success: function(results) {
-					var granny = results[0];
-					var Task = Parse.Object.extend("Request");
-					var task = new Task();
-
-					task.save( 
-					{ 
-						requestName: taskCategory,
-						distance: "5.2",
-						grannyid: granny.id,
-						grannieName: granny.get("firstname") + ' ' + granny.get("lastname"),
-						img: "empty",
-						status: "Active",
-						startTime: taskStartTime,
-						message: taskMessage,
-						subject: taskSubject,
-						volunteerid: granny.id
-						
-					}).then
-					(
-						function(test) 
-						{
-							res.send('Success');
-						}, 
-						function(error) 
-						{
-							res.status(500);
-							res.send('Error could not save task');
-						}
-					);
-				},
-				error: function(error) 
-				{
-					res.status(500);
-					res.send('Error could not find granny');
-				}
-			});
+			CreateRequest(category, grannyEmail, message, subject, startTime, res);
 		},
 		error: function(httpResponse) 
 		{
 			console.error('Request failed with response code ' + httpResponse.status);
+			CreateRequest(category, grannyEmail, message, subject, startTime, res);
 		}
 	});
 });
