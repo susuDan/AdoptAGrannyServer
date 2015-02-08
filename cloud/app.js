@@ -1,4 +1,7 @@
 
+var Mailjet = require('cloud/mailjet.js');
+var mailjet = new Mailjet('0ad8eeffdecad5a851ecca2495db032e', '94cdf2db5cac440d458c94e5e461fed8');
+
 // These two lines are required to initialize Express in Cloud Code.
 var express = require('express');
 var app = express();
@@ -29,7 +32,7 @@ function CreateRequest(category, grannyEmail, message, subject, startTime, res)
 				distance: "5.2",
 				grannyid: granny.id,
 				grannieName: granny.get("firstname") + ' ' + granny.get("lastname"),
-				img: "empty",
+				img: granny.get("profilePicture").name(),
 				status: "Active",
 				startTime: startTime,
 				message: message,
@@ -109,10 +112,11 @@ Parse.Cloud.afterSave("Request", function(request) {
 			success: function(volunteer) 
 			{
 				console.log("Found volunteer");
+				mailjet.sendContent(volunteer.get("email"), 'dancheung13@gmail.com', 'test', 'text', 'body');
 			},
 			error: function(error) 
 			{
-				console.error("Got an error ");
+				console.error("Got an error " + error.Code);
 			}
 		});
 	}
